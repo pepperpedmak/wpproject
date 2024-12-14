@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCookie } from "./serverAction/serverAction";
 import SideNav from './component/SideNav';
 import Header from './component/Header';
+import Navbar from './component/Navbar';
 
 export default function Home() {
   const router = useRouter();
@@ -26,10 +27,13 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+  <Header/>
     <div className="bg-blue-400 h-screen flex">
       <SideNav />
       <div className="flex-1 bg-white shadow-md rounded-l-lg overflow-hidden">
-        <Header />
+        
+        <Navbar />
         <main className="container mx-auto py-8 grid grid-cols-4 gap-8">
           <section className="to-do bg-purple-100 p-4 rounded-md">
             <h2 className="text-xl font-bold mb-4">TO DO</h2>
@@ -61,5 +65,6 @@ export default function Home() {
         </main>
       </div>
     </div>
+    </>
   );
 }

@@ -31,7 +31,7 @@ export default function Home() {
         if (password.length < 8) {
             newErrors.password = "Password must be at least 8 characters";
         }
-        
+
         if (password !== confirmPassword) {
             newErrors.confirmPassword = "Passwords do not match";
         }
@@ -41,7 +41,7 @@ export default function Home() {
 
     const handleSubmit = async (formData: FormData) => {
         const validationErrors = validateForm(formData);
-        
+
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
@@ -56,67 +56,73 @@ export default function Home() {
     };
 
     return (
-        <form action={handleSubmit} className="flex flex-col space-y-4 max-w-md mx-auto text-black">
-            <input 
-                type="text" 
-                name="firstName" 
-                placeholder="First Name" 
-                required 
-                className="p-2 border rounded"
-            />
-            <input 
-                type="text" 
-                name="lastName" 
-                placeholder="Last Name" 
-                required 
-                className="p-2 border rounded"
-            />
-            <div>
-                <input 
-                    type="tel" 
-                    name="phone" 
-                    placeholder="Phone Number" 
-                    required 
-                    className="p-2 border rounded w-full"
-                />
-                {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+        <div className='bg-white h-screen flex justify-center items-center'>
+            <div className='w-96 h-auto p-10 shadow-lg rounded-lg '>
+                <h1 className='text-blue-400 text-4xl font-bold mb-5'>Register</h1>
+                <form action={handleSubmit} className="flex flex-col space-y-4 max-w-md mx-auto text-black">
+                    <input
+                        type="text"
+                        name="firstName"
+                        placeholder="First Name"
+                        required
+                        className="p-2 border border-blue-400 rounded"
+                    />
+                    <input
+                        type="text"
+                        name="lastName"
+                        placeholder="Last Name"
+                        required
+                        className="p-2 border border-blue-400 rounded"
+                    />
+                    <div>
+                        <input
+                            type="tel"
+                            name="phone"
+                            placeholder="Phone Number"
+                            required
+                            className="p-2 border border-blue-400 rounded w-full"
+                        />
+                        {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+                    </div>
+                    <div>
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Email"
+                            required
+                            className="p-2 border border-blue-400 rounded w-full"
+                        />
+                        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                    </div>
+                    <div>
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            required
+                            className="p-2 border border-blue-400 rounded w-full"
+                        />
+                        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+                    </div>
+                    <div>
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            placeholder="Confirm Password"
+                            required
+                            className="p-2 border border-blue-400 rounded w-full"
+                        />
+                        {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
+                    </div>
+                    <button
+                        type="submit"
+                        className="text-xl p-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                    >
+                        Create Account
+                    </button>
+                    <div> Already have an account? <a href='login' className='text-blue-400 font-bold'>Log in</a></div>
+                </form>
             </div>
-            <div>
-                <input 
-                    type="email" 
-                    name="email" 
-                    placeholder="Email" 
-                    required 
-                    className="p-2 border rounded w-full"
-                />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-            </div>
-            <div>
-                <input 
-                    type="password" 
-                    name="password" 
-                    placeholder="Password" 
-                    required 
-                    className="p-2 border rounded w-full"
-                />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-            </div>
-            <div>
-                <input 
-                    type="password" 
-                    name="confirmPassword" 
-                    placeholder="Confirm Password" 
-                    required 
-                    className="p-2 border rounded w-full"
-                />
-                {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
-            </div>
-            <button 
-                type="submit" 
-                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-                Register
-            </button>
-        </form>
+        </div>
     );
 }

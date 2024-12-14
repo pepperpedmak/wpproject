@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcrypt"
 
-// Extend Document interface for Mongoose
 interface User extends Document {
     email: string;
     password: string;
