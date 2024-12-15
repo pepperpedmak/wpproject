@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { getUser, updateUser } from "../serverAction/serverAction";
 import SideNav from '../component/SideNav';
 import Header from '../component/Header';
+import Navbar from "../component/Navbar";
 import { useRouter } from "next/navigation";
-
 interface UserData {
   firstName: string;
   lastName: string;
@@ -132,16 +132,18 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-blue-400 h-screen flex">
+    <>
+    <Header/>
+    <div className="min-h-screen flex">
       <SideNav />
-      <div className="flex-1 bg-white shadow-md rounded-l-lg overflow-hidden flex flex-col">
-        <Header />
+      <div className="w-screen bg-white shadow-md">
+        <Navbar />
         <div className="flex-1 overflow-auto p-6 font-sans">
           <div className="flex justify-end mb-4">
             {!isEditing ? (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
               >
                 Edit Profile
               </button>
@@ -163,7 +165,7 @@ export default function Home() {
             )}
           </div>
 
-          <h2 className="text-2xl font-bold text-center mb-6">Profile</h2>
+          <h2 className="text-4xl font-bold text-center mb-8">Profile</h2>
 
           <div className="flex flex-col items-center space-y-6">
             {/* Profile Image */}
@@ -261,5 +263,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+    </>
   );
 }
