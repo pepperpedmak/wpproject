@@ -2,7 +2,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
-import { ConnectDB } from "../lib/mongodb";
 
 export const saveCookie = async (userId: string) => {
   const cookieStore = await cookies();
@@ -131,8 +130,46 @@ export const getUser = async () => {
   }
 };
 
-export const updateUser = async (req : NextRequest) => {
-  await ConnectDB();
+export const updateUser = async (formData: FormData) => {
+  try {
+    const cookieStore = await cookies();
+    const userID = cookieStore.get("user_id")?.value;
 
-  
+    if (!userID) {
+      throw new Error("User ID not found in cookies");
+    }
+
+    const response = await fetch(`${process.env.BASE_URL}/api/user/${userID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(Object.fromEntries(formData)),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Update user data failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Update user data error:", error);
+    throw error;
+  }
+};
+
+export async function fetchTeam() {
+  const teamId = "675df334b079ec728e155bbe";
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/joining/${teamId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching users: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch team users:", error);
+    return [];
+  }
 }

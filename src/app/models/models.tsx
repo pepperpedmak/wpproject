@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 import bcrypt from "bcrypt"
 
 interface User extends Document {
@@ -72,10 +72,38 @@ userSchema.methods.comparePassword = function(candidatePassword: string): Promis
 export const User = mongoose.models.User || mongoose.model<User>("User", userSchema);
 
 const teamSchema = new Schema({
-  team_name: {
+  teamName: {
       type: String,
       required: true 
-  }
+  },
+  users: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      role: {
+        type: String,
+        required: true,
+      },
+      totalSend: {
+        type: Number,
+        default: 0,
+      },
+      totalApprove: {
+        type: Number,
+        default: 0,
+      },
+      totalReject: {
+        type: Number,
+        default: 0,
+      },
+      late: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 });
 
 export const Team = mongoose.models.Team || mongoose.model("Team", teamSchema);

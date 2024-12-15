@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { getUser } from "../serverAction/serverAction";
+import { getUser, updateUser } from "../serverAction/serverAction";
 import SideNav from '../component/SideNav';
 import Header from '../component/Header';
+import { useRouter } from "next/navigation";
 
-// Define the shape of the user data
 interface UserData {
   firstName: string;
   lastName: string;
@@ -24,24 +24,52 @@ export default function Home() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const data = await getUser();
+        console.log('Fetched User Data:', data);
+        
         if (data) {
           setUserData(data);
           setEditedData(data);
+          setLoading(false);
+        } else {
+          setLoading(false);
+          router.push('/login'); 
         }
       } catch (error) {
         console.error("Error setting user data:", error);
-      } finally {
         setLoading(false);
+        router.push('/login');
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [router]);
 
+  const fetchUserData = async () => {
+    try {
+      const data = await getUser();
+      console.log('Fetched User Data:', data);
+      
+      if (data) {
+        setUserData(data);
+        setEditedData(data);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        router.push('/login'); 
+      }
+    } catch (error) {
+      console.error("Error setting user data:", error);
+      setLoading(false);
+      router.push('/login');
+    }
+  }
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (editedData) {
       setEditedData({
@@ -67,22 +95,29 @@ export default function Home() {
     fileInputRef.current?.click();
   };
 
-  const handleSave = () => {
-    // Here you would typically send the updated data to your backend
-    if (editedData) {
-      // TODO: Implement file upload logic
-      // if (selectedImage) {
-      //   // Upload image logic
-      // }
-      
-      setUserData(editedData);
+  const handleSave = async () => {
+    if (!editedData) return;
+  
+    const formData = new FormData();
+    formData.append("firstName", editedData.firstName);
+    formData.append("lastName", editedData.lastName);
+    formData.append("phone", editedData.phone);
+    formData.append("bio", editedData.bio);
+  
+    try {
+      const updatedUser = await updateUser(formData);
+      setUserData(updatedUser);
       setIsEditing(false);
-      // Add API call to update user data
+      setSelectedImage(null);
+      setPreviewImage(null);
+      fetchUserData();
+    } catch (error) {
+      console.error("Error saving user data:", error);
     }
   };
 
   const handleCancel = () => {
-    setEditedData(userData);
+    setEditedData(null);
     setIsEditing(false);
     setSelectedImage(null);
     setPreviewImage(null);
@@ -189,17 +224,7 @@ export default function Home() {
 
               <div className="mb-4">
                 <label className="block text-gray-700 mb-1">Email</label>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    name="email"
-                    value={editedData?.email || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                ) : (
-                  <p className="text-gray-900">{userData.email}</p>
-                )}
+                <p className="text-gray-900">{userData.email}</p>
               </div>
 
               <div className="mb-4">
