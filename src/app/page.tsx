@@ -29,12 +29,11 @@ export default function Home() {
   return (
     <>
   <Header/>
-    <div className="bg-blue-400 h-screen flex">
+    <div className="min-h-screen flex">
       <SideNav />
-      <div className="flex-1 bg-white shadow-md rounded-l-lg overflow-hidden">
-        
+      <div className="w-screen bg-white shadow-md">
         <Navbar />
-        <main className="container mx-auto py-8 grid grid-cols-4 gap-8">
+        <main className="container mx-auto ml-2 mr-2 py-8 grid grid-cols-4 gap-8">
           <section className="to-do bg-purple-100 p-4 rounded-md">
             <h2 className="text-xl font-bold mb-4">TO DO</h2>
             <button className="bg-purple-500 text-white px-4 py-2 rounded-md">
