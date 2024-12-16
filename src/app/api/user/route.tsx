@@ -14,8 +14,7 @@ export async function POST(req: Request) {
                 message: "Token is required",
             }, { status: 400 });
         }
-
-        // Query the database
+        
         const user = await User.findOne({ _id: token });
 
         if (user) {

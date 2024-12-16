@@ -1,25 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { Team } from "@/app/models/models";
-import { ConnectDB } from "@/app/lib/mongodb";
-import { debug } from "console";
 
-export async function GET(req: NextRequest,context: { params: Promise<{ id: string }> }) {
-  await ConnectDB();
-
+//fetch team
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const { id: teamId } = await context.params;
+    const teamID = params.id;
+    const team = await Team.findOne({_id : teamID})
+      .populate("users.user")
+      .populate("projects.project");
 
-    const team = await Team.findById(teamId);
+    return team;
+  } catch (error) {
+    console.error("Error fetching team by userId:", error);
+    throw error;
+  }
+};
+
+//update team name
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const teamID = await params.id;
+    const { teamName } = await req.json(); 
+    const team = await Team.findOneAndUpdate(
+      { _id: teamID }, 
+      { teamName }, 
+      { new: true }
+    );
 
     if (!team) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
+      return new Response(JSON.stringify({ message: "Team not found" }), { status: 404 });
     }
 
-    console.log("route : " , team);
-
-    return NextResponse.json(team || []);
+    return new Response(JSON.stringify(team), { status: 200 });
   } catch (error) {
-    console.error("Error fetching team with users:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error updating team:", error);
+    return new Response(JSON.stringify({ message: "An error occurred", error }), {
+      status: 500,
+    });
   }
 }

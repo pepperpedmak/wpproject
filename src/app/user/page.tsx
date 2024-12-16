@@ -6,6 +6,7 @@ import SideNav from '../component/SideNav';
 import Header from '../component/Header';
 import Navbar from "../component/Navbar";
 import { useRouter } from "next/navigation";
+
 interface UserData {
   firstName: string;
   lastName: string;

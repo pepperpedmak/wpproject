@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 import bcrypt from "bcrypt"
+import { describe } from "node:test";
 
 interface User extends Document {
     email: string;
@@ -76,6 +77,12 @@ const teamSchema = new Schema({
       type: String,
       required: true 
   },
+  projects:[{
+    project :{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Project",
+      },
+  }],
   users: [
     {
       user: {
@@ -84,6 +91,8 @@ const teamSchema = new Schema({
       },
       role: {
         type: String,
+        enum : ['projectmanager','member'] ,
+        default: 'projectmanager' ,
         required: true,
       },
       totalSend: {
@@ -107,3 +116,70 @@ const teamSchema = new Schema({
 });
 
 export const Team = mongoose.models.Team || mongoose.model("Team", teamSchema);
+
+const projectSchema = new Schema({
+  projectName : {
+    type : String,
+    required : true,
+  },
+  tasks : [{
+      task: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Task",
+      },
+    }],
+})
+
+export const Project = mongoose.models.Project || mongoose.model("Project" , projectSchema);
+
+const taskSchema = new Schema({
+  taskTitle :{
+    type : String,
+    required :true,
+  },
+  startDate:{
+    type : Date,
+    required :true,
+  },
+  endDate:{
+    type : Date,
+    required :true,
+  },
+  status:{
+    type: String,
+    enum : ['todo','improgress','testing','complete'] ,
+    default: 'todo' ,
+  },
+  priority:{
+    type: String,
+    enum : ['low','medium','high','urgent'] ,
+    required : true,
+  },
+  describtion:{
+    type : String,
+  },
+  users:[{
+    user:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref : "User",
+    },
+    fileDir:{
+      type : String,
+      required : true,
+    },
+    fileName:{
+      type : String,
+      required : true,
+    },
+    uploadDate:{
+      type : Date,
+      required : true
+    },
+    isAccept:{
+      type : Boolean,
+      default : false,
+    }
+  }]
+})
+
+export const Task = mongoose.models.Task || mongoose.model("Task" , taskSchema);

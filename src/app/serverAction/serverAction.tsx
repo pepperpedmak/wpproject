@@ -105,7 +105,7 @@ export const getUser = async () => {
     const userID = cookieStore.get("user_id")?.value;
 
     if (userID) {
-      const response = await fetch(`${process.env.BASE_URL}/api/user`, {
+      const response = await fetch(`${process.env.BASE_URL}/api/user/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -172,4 +172,8 @@ export async function fetchTeam() {
     console.error("Failed to fetch team users:", error);
     return [];
   }
+}
+
+export async function getProject(){
+  
 }
