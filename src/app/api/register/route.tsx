@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { User , Team} from "@/app/models/models";
+import { User , Team , Project} from "@/app/models/models";
 import { ConnectDB } from "@/app/lib/mongodb";
 
 export async function POST(req: Request) {
@@ -16,13 +16,26 @@ export async function POST(req: Request) {
             password,
         });
 
-        // const newTeam = new Team({
-        //     users[{
-        //         newUser._id
-        //     }]
-        // })
+        const newProject = new Project({
+            projectName : "Project0"
+        });
+
+        const newTeam = new Team({
+        teamName : "Team0",
+        users: [
+        {
+          user: newUser._id,
+        }],
+        projects: [
+            {
+              project: newProject._id,
+            },
+      ],
+    });
 
         await newUser.save();
+        await newProject.save();
+        await newTeam.save();
 
         return NextResponse.json({
             status: "success",

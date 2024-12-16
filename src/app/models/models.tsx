@@ -91,10 +91,16 @@ const teamSchema = new Schema({
       },
       role: {
         type: String,
-        enum : ['projectmanager','member'] ,
-        default: 'projectmanager' ,
+        enum : ["projectmanager","member"] ,
         required: true,
       },
+      status: {
+        type: String,
+        enum: ["pending", "join"], 
+        default: "pending",
+        required: true,
+      },
+      
       totalSend: {
         type: Number,
         default: 0,

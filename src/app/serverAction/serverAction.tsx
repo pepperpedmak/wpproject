@@ -105,12 +105,8 @@ export const getUser = async () => {
     const userID = cookieStore.get("user_id")?.value;
 
     if (userID) {
-      const response = await fetch(`${process.env.BASE_URL}/api/user/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: userID }),
+      const response = await fetch(`${process.env.BASE_URL}/api/user/${userID}`, {
+        method: "GET",
       });
 
       if (response.ok) {
@@ -159,21 +155,19 @@ export const updateUser = async (formData: FormData) => {
   }
 };
 
-export async function fetchTeam() {
-  const teamId = "675df334b079ec728e155bbe";
-  try {
-    const response = await fetch(`${process.env.BASE_URL}/api/joining/${teamId}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching users: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch team users:", error);
-    return [];
-  }
-}
+// export async function addTeam(){
+//   const cookieStore = await cookies();
+//   const userID = cookieStore.get("user_id")?.value;
 
-export async function getProject(){
-  
-}
+
+//   try{
+
+//   }catch(error){
+//     console.error("add team error:",error);
+//     throw error;
+//   }
+// }
+
+// export async function addProject(){
+
+// }

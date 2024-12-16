@@ -17,7 +17,7 @@ export default function SideNav() {
   return (
     <div className="flex">
       <aside
-        className={`bg-white shadow-md p-2 space-y-6 transition-all duration-300 ${isSidebarExpanded ? 'w-52' : 'w-16'
+        className={`bg-white shadow-md p-2 space-y-6 transition-all duration-300 ${isSidebarExpanded ? 'w-44' : 'w-16'
           } relative`}
       >
         {/* Toggle button */}
