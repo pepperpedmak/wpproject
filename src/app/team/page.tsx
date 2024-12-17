@@ -63,6 +63,7 @@ export default function Leaderboard() {
         <thead>
           <tr style={{ backgroundColor: "#add8e6", textAlign: "left" }}>
             <th style={{ padding: "10px", border: "1px solid #ddd" }}>Name</th>
+            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Rank</th>
             <th style={{ padding: "10px", border: "1px solid #ddd" }}>Role</th>
             <th style={{ padding: "10px", border: "1px solid #ddd" }}>Total Send</th>
             <th style={{ padding: "10px", border: "1px solid #ddd" }}>Total Approve</th>
@@ -82,13 +83,12 @@ export default function Leaderboard() {
                   />
                   {user.user.firstName} {user.user.lastName}
                 </td>
+                <td style={{ padding: "10px", border: "1px solid #ddd" }}>S</td>
                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.role}</td>
                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.totalSend}</td>
                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.totalApprove}</td>
                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.totalReject}</td>
-                <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                  {user.late > 0 ? "Yes" : "No"}
-                </td>
+                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.late}</td>
               </tr>
             ))
           ) : (
