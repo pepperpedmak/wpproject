@@ -1,23 +1,44 @@
 import mongoose from "mongoose";
 import { Team } from "@/app/models/models";
+import { ConnectDB } from "@/app/lib/mongodb";
+import { NextResponse } from "next/server";
 
 //fetch team
 export async function GET(req: Request, { params }: { params: { id: string } }) {
+  await ConnectDB();
   try {
     const teamID = params.id;
-    const team = await Team.findOne({_id : teamID})
-      .populate("users.user")
-      .populate("projects.project");
 
-    return team;
+    // Fetch the team document using `_id` field
+    const team = await Team.findById(teamID)
+      .populate("users.user") // Populate user details in the users array
+      .populate("projects.project"); // Populate project details in the projects array
+
+    // Handle case where team is not found
+    if (!team) {
+      return NextResponse.json(
+        { status: "error", message: "Team not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      status: "success",
+      team,
+    });
   } catch (error) {
-    console.error("Error fetching team by userId:", error);
-    throw error;
+    console.error("Error fetching team by teamID:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to fetch team", error },
+      { status: 500 }
+    );
   }
 };
 
+
 //update team name
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
+  await ConnectDB();
   try {
     const teamID = await params.id;
     const { teamName } = await req.json(); 
@@ -28,14 +49,65 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     );
 
     if (!team) {
-      return new Response(JSON.stringify({ message: "Team not found" }), { status: 404 });
+      return NextResponse.json({ message: "Team not found" }, { status: 404 });
     }
 
-    return new Response(JSON.stringify(team), { status: 200 });
+    return NextResponse.json((team), { status: 200 });
   } catch (error) {
     console.error("Error updating team:", error);
-    return new Response(JSON.stringify({ message: "An error occurred", error }), {
-      status: 500,
-    });
+    return NextResponse.json( { status: "error", message: "Failed to update team", error },
+      { status: 500 });
   }
 }
+//createTeam
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+  await ConnectDB();
+  try {
+    const userID = params.id; 
+    const { teamName } = await req.json(); 
+
+    const newTeam = new Team({
+      teamName,
+      users: [
+        {
+          user: userID,
+        },
+      ],
+    });
+
+    await newTeam.save();
+
+    return NextResponse.json({
+      status: "success",
+      message: "Team created successfully!",
+      team: newTeam,
+    });
+  } catch (error) {
+    console.error("Error creating team:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to create team", error },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  await ConnectDB();
+  try {
+    const teamID = params.id;
+
+    await Team.findByIdAndDelete(teamID);
+
+    return NextResponse.json({
+      status: "success",
+      message: "Team was deleted successfully!",
+    });
+  } catch (error) {
+    console.error("Error deleting team:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to deleting team", error },
+      { status: 500 }
+    );
+  }
+}
+
