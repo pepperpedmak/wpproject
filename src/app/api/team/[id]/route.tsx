@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   await ConnectDB();
   try {
-    const teamID = params.id;
+    const teamID = await params.id;
 
     // Fetch the team document using `_id` field
     const team = await Team.findById(teamID)
