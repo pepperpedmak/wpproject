@@ -3,11 +3,28 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-export const saveCookie = async (userId: string) => {
+export const saveCookie = async (userID: string, teamID: string, projectID: string) => {
   const cookieStore = await cookies();
+
   cookieStore.set({
-    name: "user_id",
-    value: userId,
+    name: "userID",
+    value: userID,
+    httpOnly: true,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  });
+
+  cookieStore.set({
+    name: "teamID",
+    value: teamID,
+    httpOnly: true,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+
+  cookieStore.set({
+    name: "projectID",
+    value: projectID,
     httpOnly: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
@@ -16,17 +33,26 @@ export const saveCookie = async (userId: string) => {
 
 export const getCookie = async () => {
   const cookieStore = await cookies();
-  const userID = cookieStore.get("user_id");
-  return userID?.value || false;
+  const userID = cookieStore.get("userID")?.value;
+  const teamID = cookieStore.get("teamID")?.value;
+  const projectID = cookieStore.get("projectID")?.value;
+
+  return {
+    userID: userID || null,
+    teamID: teamID || null,
+    projectID: projectID || null,
+  };
 };
 
 export const clearCookie = async () => {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete("user_id");
-    console.log("User ID cookie cleared.");
+    cookieStore.delete("userID");
+    cookieStore.delete("teamID");
+    cookieStore.delete("projectID");
+    console.log("All cookies cleared.");
   } catch (error) {
-    console.error("Error clearing cookie:", error);
+    console.error("Error clearing cookies:", error);
   }
 };
 
@@ -55,7 +81,7 @@ export const login = async (formData: FormData): Promise<void> => {
       throw new Error(responseData.message || `Login failed: ${response.statusText}`);
     }
 
-    saveCookie(responseData.user._id);
+    await saveCookie(responseData.user._id, responseData.team._id, responseData.project?._id);
 
     redirect("/");
   } catch (error) {
@@ -64,14 +90,13 @@ export const login = async (formData: FormData): Promise<void> => {
   }
 };
 
-
 export const register = async (formData: FormData) => {
   const data = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     phone: formData.get("phone"),
     email: formData.get("email"),
-    password: formData.get("password")
+    password: formData.get("password"),
   };
 
   if (!data.email || !data.password) {
@@ -97,12 +122,12 @@ export const register = async (formData: FormData) => {
     console.error("Registration error:", error);
     throw error;
   }
-}
+};
 
 export const getUser = async () => {
   try {
     const cookieStore = await cookies();
-    const userID = cookieStore.get("user_id")?.value;
+    const userID = cookieStore.get("userID")?.value;
 
     if (userID) {
       const response = await fetch(`${process.env.BASE_URL}/api/user/${userID}`, {
@@ -117,7 +142,7 @@ export const getUser = async () => {
         return null;
       }
     } else {
-      console.warn("No user token cookie found");
+      console.warn("No user cookie found");
       return null;
     }
   } catch (error) {
@@ -129,7 +154,7 @@ export const getUser = async () => {
 export const updateUser = async (formData: FormData) => {
   try {
     const cookieStore = await cookies();
-    const userID = cookieStore.get("user_id")?.value;
+    const userID = cookieStore.get("userID")?.value;
 
     if (!userID) {
       throw new Error("User ID not found in cookies");
@@ -155,19 +180,40 @@ export const updateUser = async (formData: FormData) => {
   }
 };
 
-// export async function addTeam(){
-//   const cookieStore = await cookies();
-//   const userID = cookieStore.get("user_id")?.value;
+export async function fetchTeamData() {
+  try {
+    const cookieStore = await cookies();
+    const userID = cookieStore.get("userID")?.value;
+    const teamID = cookieStore.get("teamID")?.value;
+    const projectID = cookieStore.get("projectID")?.value;
+
+    if (!userID || !teamID || !projectID) {
+      throw new Error("Missing required cookies: userID, teamID, or projectID");
+    }
+
+    const response = await fetch(`${process.env.BASE_URL}/api/team/${teamID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch team data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      status: "success",
+      data,
+      userID,
+      teamID,
+      projectID,
+    };
+  } catch (error) {
+    console.error("Error fetching team data:", error);
+    return { status: "error", message: error };
+  }
+}
 
 
-//   try{
-
-//   }catch(error){
-//     console.error("add team error:",error);
-//     throw error;
-//   }
-// }
-
-// export async function addProject(){
-
-// }
