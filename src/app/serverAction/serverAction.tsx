@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-export const saveCookie = async (userID: string, teamID: string, projectID: string) => {
+export const saveUserCookie = async (userID: string) => {
   const cookieStore = await cookies();
 
   cookieStore.set({
@@ -13,6 +13,10 @@ export const saveCookie = async (userID: string, teamID: string, projectID: stri
     path: "/",
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
+};
+
+export const saveProjectCookie = async (teamID: string, projectID: string) => {
+  const cookieStore = await cookies();
 
   cookieStore.set({
     name: "teamID",
@@ -81,7 +85,8 @@ export const login = async (formData: FormData): Promise<void> => {
       throw new Error(responseData.message || `Login failed: ${response.statusText}`);
     }
 
-    await saveCookie(responseData.user._id, responseData.team._id, responseData.project?._id);
+    await saveUserCookie(responseData.user._id);
+    await saveProjectCookie(responseData.team._id, responseData.project?._id);
 
     redirect("/");
   } catch (error) {
@@ -184,14 +189,12 @@ export async function fetchTeamData() {
   try {
     const cookieStore = await cookies();
     const userID = cookieStore.get("userID")?.value;
-    const teamID = cookieStore.get("teamID")?.value;
-    const projectID = cookieStore.get("projectID")?.value;
 
-    if (!userID || !teamID || !projectID) {
-      throw new Error("Missing required cookies: userID, teamID, or projectID");
+    if (!userID) {
+      throw new Error("Missing required cookies: userID");
     }
 
-    const response = await fetch(`${process.env.BASE_URL}/api/team/${teamID}`, {
+    const response = await fetch(`${process.env.BASE_URL}/api/userinteam/${userID}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -203,17 +206,78 @@ export async function fetchTeamData() {
     }
 
     const data = await response.json();
-    return {
-      status: "success",
-      data,
-      userID,
-      teamID,
-      projectID,
-    };
+
+    if (data.status === "success" && Array.isArray(data.team)) {
+      return data.team;
+    } else {
+      throw new Error("Unexpected response structure");
+    }
   } catch (error) {
     console.error("Error fetching team data:", error);
-    return { status: "error", message: error };
+    return [];
   }
 }
 
+export async function addTeam(teamName: string) {
+  try {
+    const cookieStore = await cookies();
+    const userID = cookieStore.get("userID")?.value;
+    const response = await fetch(`${process.env.BASE_URL}/api/team/${userID}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ teamName }),
+    });
 
+    if (!response.ok) {
+      throw new Error(`Failed to add team: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error adding team:", error);
+    throw error;
+  }
+}
+
+export async function editTeamName(teamID: string, teamName: string): Promise<void> {
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/team/${teamID}`, {
+      method: "PUT", // Use PUT for updates
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ teamName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to edit team name: ${response.statusText}`);
+    }
+
+    console.log("Team name updated successfully!");
+  } catch (error) {
+    console.error("Error editing team name:", error);
+    throw error; // Rethrow for handling in calling code if needed
+  }
+}
+
+export async function deleteTeam(teamID: string): Promise<void> {
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/team/${teamID}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete team: ${response.statusText}`);
+    }
+
+    console.log("Team deleted successfully!");
+  } catch (error) {
+    console.error("Error deleting team:", error);
+    throw error; // Rethrow for handling in calling code if needed
+  }
+}

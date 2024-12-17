@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchTeamData } from "../serverAction/serverAction";
+import { fetchTeamData, addTeam } from "../serverAction/serverAction";
 import TeamCard from "./TeamCard";
 
 interface ProjectDetails {
@@ -7,86 +7,109 @@ interface ProjectDetails {
   projectName: string;
 }
 
-interface NestedProject {
-  project: ProjectDetails | null;
-  _id: string;
-}
-
 interface TeamData {
   _id: string;
   teamName: string;
-  projects: NestedProject[];
+  projects: { project: ProjectDetails | null; _id: string }[];
 }
-
 
 const TeamSideBar: React.FC = () => {
   const [teamData, setTeamData] = useState<TeamData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAddingTeam, setIsAddingTeam] = useState<boolean>(false);
+  const [newTeamName, setNewTeamName] = useState<string>("");
 
   useEffect(() => {
-    const loadTeamData = async () => {
-      try {
-        setIsLoading(true);
-        const result = await fetchTeamData();
-
-        console.log("Raw Result:", result);
-
-        // Extract team from result.data.team
-        if (result?.data?.team && typeof result.data.team === 'object') {
-          const team: TeamData = {
-            _id: result.data.team._id,
-            teamName: result.data.team.teamName,
-            projects: result.data.team.projects || []
-          };
-
-          setTeamData([team]);
-          setError(null);
-        } else {
-          console.error("Invalid data format:", result);
-          setTeamData([]);
-          setError("Unable to load team data");
-        }
-      } catch (error) {
-        console.error("Error fetching team data:", error);
-        setTeamData([]);
-        setError("Failed to fetch team data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadTeamData();
   }, []);
 
+  const loadTeamData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const teams = await fetchTeamData();
+      setTeamData(teams);
+    } catch (err) {
+      setError("Failed to load team data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddTeamClick = () => setIsAddingTeam((prev) => !prev);
+
+  const handleSubmitTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTeamName.trim()) return;
+
+    try {
+      await addTeam(newTeamName);
+      setNewTeamName("");
+      setIsAddingTeam(false);
+      loadTeamData(); // Refresh team data after adding
+    } catch (error) {
+      setError("Failed to add team");
+    }
+  };
+
   return (
     <div className="bg-white p-4 w-64">
-      {/* Sidebar Header */}
       <div className="flex justify-between items-center mb-4">
         <span className="font-semibold text-xl">Work Space</span>
+        <button
+          onClick={handleAddTeamClick}
+          className="bg-blue-500 text-white p-1 rounded hover:bg-blue-600"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </button>
       </div>
 
-      {/* Loading and Error States */}
+      {isAddingTeam && (
+        <form onSubmit={handleSubmitTeam} className="mb-4">
+          <input
+            type="text"
+            placeholder="Enter team name"
+            value={newTeamName}
+            onChange={(e) => setNewTeamName(e.target.value)}
+            className="w-full p-2 border rounded mb-2"
+          />
+          <button
+            type="submit"
+            className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
+          >
+            Add Team
+          </button>
+          <button
+            onClick={handleAddTeamClick}
+            type="button"
+            className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
+
       {isLoading && <p>Loading teams...</p>}
       {error && <p className="text-red-500">{error}</p>}
-
-      {/* Map teamData to TeamCard */}
-      {!isLoading && teamData.length === 0 && (
-        <p className="text-gray-500">No teams found</p>
-      )}
+      {!isLoading && teamData.length === 0 && <p className="text-gray-500">No teams found</p>}
 
       {teamData.map((team) => (
         <TeamCard
           key={team._id}
           teamData={{
-            ...team,
+            _id: team._id,
+            teamName: team.teamName,
             projects: team.projects
               ?.filter((p) => p.project) // Filter out null projects
-              .map((p) => p.project as ProjectDetails) || [] // Extract `project` and cast
+              .map((p) => p.project as ProjectDetails) || [],
           }}
+          refreshTeamData={loadTeamData} // Pass the refresh function
         />
       ))}
-
     </div>
   );
 };
