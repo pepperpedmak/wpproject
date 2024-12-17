@@ -299,7 +299,6 @@ export async function fetchUserInTeam() {
     const teamID = cookieStore.get("teamID")?.value;
 
     if (!teamID) {
-      console.error("No teamID found in cookies");
       throw new Error("Missing required cookies: teamID");
     }
 
@@ -315,7 +314,6 @@ export async function fetchUserInTeam() {
     }
 
     const data = await response.json();
-    console.log("Full API Response:", JSON.stringify(data, null, 2)); 
     return data;
   } catch (error) {
     console.error("Detailed Error fetching team data:", error);
