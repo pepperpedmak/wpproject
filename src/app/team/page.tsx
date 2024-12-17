@@ -6,6 +6,7 @@ import SideNav from '../component/SideNav';
 import Header from '../component/Header';
 import Navbar from "../component/Navbar";
 
+
 interface TeamUser {
   _id: string;
   user: {
@@ -29,7 +30,7 @@ export default function Leaderboard() {
     const fetchTeamUser = async () => {
       try {
         const result = await fetchTeamData();
-
+        console.log(result?.data)
         if (result?.data?.team?.users) {
           // Map the users array and extract nested user data
           const formattedUsers = result.data.team.users.map((entry: any) => ({

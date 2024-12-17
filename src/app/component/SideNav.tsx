@@ -22,6 +22,8 @@ export default function SideNav() {
 
   const activeMenu = (menu: string) => {
     setActiveMenuItem(menu); // Set the active menu item
+    if (menu !== 'project') setIsTeamSideBarVisible(false);
+    if (menu !== 'member') setIsMemberSideBarVisible(false);
   };
 
   return (
