@@ -97,19 +97,27 @@ export const login = async (formData: FormData): Promise<void> => {
 
 export const register = async (formData: FormData) => {
   const data = {
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    phone: formData.get("phone"),
-    email: formData.get("email"),
-    password: formData.get("password"),
+    firstName: formData.get("firstName")?.toString().trim(),
+    lastName: formData.get("lastName")?.toString().trim(),
+    phone: formData.get("phone")?.toString().trim(),
+    email: formData.get("email")?.toString().trim(),
+    password: formData.get("password")?.toString().trim(),
   };
 
-  if (!data.email || !data.password) {
-    throw new Error("Email and password are required");
+  // Validate all required fields
+  if (!data.firstName || !data.lastName || !data.phone || !data.email || !data.password) {
+    throw new Error("All fields (First Name, Last Name, Phone, Email, Password) are required.");
+  }
+
+  // Ensure BASE_URL is defined
+  const baseUrl = process.env.BASE_URL;
+  if (!baseUrl) {
+    throw new Error("Server configuration error: BASE_URL is not defined.");
   }
 
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/register`, {
+    // Make API call to register endpoint
+    const response = await fetch(`${baseUrl}/api/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -118,16 +126,19 @@ export const register = async (formData: FormData) => {
     });
 
     if (!response.ok) {
+      // Extract error message from server response
       const errorData = await response.json();
       throw new Error(errorData.message || `Registration failed: ${response.statusText}`);
     }
 
+    // Return the successful response as JSON
     return await response.json();
   } catch (error) {
     console.error("Registration error:", error);
-    throw error;
+    throw new Error("An unexpected error occurred during registration.");
   }
 };
+
 
 export const getUser = async () => {
   try {
@@ -278,6 +289,36 @@ export async function deleteTeam(teamID: string): Promise<void> {
     console.log("Team deleted successfully!");
   } catch (error) {
     console.error("Error deleting team:", error);
-    throw error; // Rethrow for handling in calling code if needed
+    throw error; 
+  }
+}
+
+export async function fetchUserInTeam() {
+  try {
+    const cookieStore = await cookies();
+    const teamID = cookieStore.get("teamID")?.value;
+
+    if (!teamID) {
+      console.error("No teamID found in cookies");
+      throw new Error("Missing required cookies: teamID");
+    }
+
+    const response = await fetch(`${process.env.BASE_URL}/api/team/${teamID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch team data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Full API Response:", JSON.stringify(data, null, 2)); 
+    return data;
+  } catch (error) {
+    console.error("Detailed Error fetching team data:", error);
+    return null;
   }
 }
