@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import TeamSideBar from './TeamSideBar';
+import MemberSideBar from './MemberSideBar';
 
 export default function SideNav() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isTeamSideBarVisible, setIsTeamSideBarVisible] = useState(false);
+  const [isMemberSideBarVisible, setIsMemberSideBarVisible] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState<string>(''); // Track active menu item
 
   const toggleSidebar = () => {
@@ -14,12 +16,16 @@ export default function SideNav() {
   const toggleTeamSideBar = () => {
     setIsTeamSideBarVisible(!isTeamSideBarVisible);
   };
+  const toggleMemberSideBar = () => {
+    setIsMemberSideBarVisible(!isMemberSideBarVisible);
+  };
 
   const activeMenu = (menu: string) => {
     setActiveMenuItem(menu); // Set the active menu item
   };
 
   return (
+   
     <div className="flex">
       <aside
         className={`bg-white shadow-md p-2 space-y-6 transition-all duration-300 ${isSidebarExpanded ? 'w-44' : 'w-16'} relative`}
@@ -150,7 +156,9 @@ export default function SideNav() {
                 ${activeMenuItem === 'member' 
                   ? 'bg-blue-400 text-white' 
                   : 'hover:bg-blue-400 hover:text-white'}`}
-              onClick={() => activeMenu('member')}
+              onClick={() => {
+                activeMenu('member');
+                toggleMemberSideBar();}}
             >
               <Link href="/">
                 <div className="flex items-center p-2 m-1 ">
@@ -177,6 +185,7 @@ export default function SideNav() {
         </nav>
       </aside>
       {isTeamSideBarVisible && <TeamSideBar />}
+      {isMemberSideBarVisible && <MemberSideBar/> }
     </div>
   );
 }
