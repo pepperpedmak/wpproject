@@ -63,14 +63,34 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   await ConnectDB();
   try {
-    const userID = params.id; 
-    const { teamName } = await req.json(); 
+    const userID = params.id;
 
+    // Validate userID
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return NextResponse.json(
+        { status: "error", message: "Invalid user ID" },
+        { status: 400 }
+      );
+    }
+
+    const { teamName } = await req.json();
+
+    // Validate teamName
+    if (!teamName || teamName.trim() === "") {
+      return NextResponse.json(
+        { status: "error", message: "Team name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Create the new team
     const newTeam = new Team({
       teamName,
       users: [
         {
           user: userID,
+          role: "projectmanager", // Matches enum
+          status: "join",
         },
       ],
     });
@@ -90,6 +110,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     );
   }
 }
+
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   await ConnectDB();
