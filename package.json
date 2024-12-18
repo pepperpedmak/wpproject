@@ -12,6 +12,7 @@
     "bcrypt": "^5.1.1",
     "formidable": "^3.5.2",
     "mongoose": "^8.9.0",
+    "mysql2": "^3.11.5",
     "next": "15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
