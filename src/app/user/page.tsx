@@ -194,7 +194,7 @@ export default function Home() {
               {/* Profile Information */}
               <div className="w-full max-w-2xl ml-28">
                 <div className="grid grid-cols-2 gap-7 mb-4">
-                  <div className="flex justify-center">
+                  <div className="flex item-center">
                     <label className="block text-gray-700 mr-2 pt-2">First Name</label>
                     {isEditing ? (
                       <input
@@ -208,7 +208,7 @@ export default function Home() {
                       <p className="text-black font-semibold p-2">{userData.firstName}</p>
                     )}
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex item-center">
                     <label className="block text-gray-700 mr-2 pt-2">Last Name</label>
                     {isEditing ? (
                       <input
@@ -224,12 +224,12 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-8 mb-6">
-                  <div className="flex justify-center">
-                    <label className="block text-gray-700 mr-2">Email</label>
+                  <div className="flex item-center pt-2">
+                    <label className="block text-gray-700 mr-2 ">Email</label>
                     <p className="text-black font-semibold">{userData.email}</p>
                   </div>
 
-                  <div className="flex justify-center">
+                  <div className="flex item-center">
                     <label className="block text-gray-700 mr-2 pt-2">Phone </label>
                     {isEditing ? (
                       <input
