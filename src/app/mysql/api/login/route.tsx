@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pool } from "@/app/lib/mysql";
+import { pool } from "@/app/lib/mongodb"; // MySQL connection pool
 import bcrypt from "bcrypt";
-import { RowDataPacket } from "mysql2"; // Import RowDataPacket
+import { RowDataPacket } from "mysql2";
 
-// Define interfaces for your database results
+// Define interfaces for database results
 interface User extends RowDataPacket {
   id: number;
   email: string;
@@ -20,9 +20,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Parse request body
     const { email, password } = await req.json();
 
-    // Query the database for the user
+    // Query to find user by email
     const [users] = await pool.query<User[]>(
-      "SELECT * FROM Users WHERE email = ?",
+      "SELECT id, email, password FROM Users WHERE email = ?",
       [email]
     );
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const user = users[0];
 
-    // Compare passwords using bcrypt
+    // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Find the user's team
+    // Query to find user's team and project
     const [teams] = await pool.query<Team[]>(
       `SELECT t.id AS team_id, p.id AS project_id 
        FROM Team t
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const team = teams[0];
 
+    // Return success response with user, team, and project details
     return NextResponse.json(
       {
         status: "success",
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
         project: team.project_id
           ? { id: team.project_id }
-          : null,
+          : null, // Handle case where no project exists
       },
       { status: 200 }
     );

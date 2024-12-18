@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { addTask, getTask, editTask, deleteTask } from "../serverAction/serverAction";
 
 // Task Interface
 interface Task {
   id: number;
   title: string;
   description: string;
-  dueDate?: string;
+  startDate?: string;
+  endDate?: string;
   priority?: string;
   member?: string;
 }
@@ -43,7 +45,8 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose }) => {
         </button>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">{task.title}</h2>
         <p className="text-gray-600 mb-4">{task.description}</p>
-        {task.dueDate && <p className="text-sm text-gray-500">Due: {task.dueDate}</p>}
+        {task.startDate && <p className="text-sm text-gray-500">Start: {task.startDate}</p>}
+        {task.endDate && <p className="text-sm text-gray-500">End: {task.endDate}</p>}
         {task.priority && <p className="text-sm text-gray-500">Priority: {task.priority}</p>}
         {task.member && <p className="text-sm text-gray-500">Assigned to: {task.member}</p>}
       </div>
@@ -54,41 +57,52 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose }) => {
 // Add/Edit Task Modal
 interface AddTaskModalProps {
   onAddTask: (task: Task) => void;
-  onUpdateTask: (task: Task) => void;
   onClose: () => void;
   taskToEdit?: Task | null;
 }
 
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onUpdateTask, onClose, taskToEdit }) => {
+const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onClose, taskToEdit }) => {
   const [title, setTitle] = useState<string>(taskToEdit?.title || "");
   const [description, setDescription] = useState<string>(taskToEdit?.description || "");
   const [priority, setPriority] = useState<string>(taskToEdit?.priority || "");
-  const [dueDate, setDueDate] = useState<string>(taskToEdit?.dueDate || "");
+  const [startDate, setStartDate] = useState<string>(taskToEdit?.startDate || "");
+  const [endDate, setEndDate] = useState<string>(taskToEdit?.endDate || "");
   const [member, setMember] = useState<string>(taskToEdit?.member || "");
 
   useEffect(() => {
     if (taskToEdit) {
-      setTitle(taskToEdit.title || "");
-      setDescription(taskToEdit.description || "");
+      setTitle(taskToEdit.title);
+      setDescription(taskToEdit.description);
       setPriority(taskToEdit.priority || "");
-      setDueDate(taskToEdit.dueDate || "");
+      setStartDate(taskToEdit.startDate || "");
+      setEndDate(taskToEdit.endDate || "");
       setMember(taskToEdit.member || "");
+    } else {
+      setTitle("");
+      setDescription("");
+      setPriority("");
+      setStartDate("");
+      setEndDate("");
+      setMember("");
     }
   }, [taskToEdit]);
 
   /*const handleSave = () => {
     if (!title.trim()) return alert("Task title is required!");
-
-    const newTask: Task = {
-      id: taskToEdit ? taskToEdit.id : Date.now(),
+    const updatedTask: Task = {
+      id: taskToEdit?.id || Date.now(),
       title,
       description,
       priority,
-      dueDate,
-      member,
+      startDate,
+      endDate,
     };
+<<<<<<< HEAD
 
     taskToEdit ? onUpdateTask(newTask) : onAddTask(newTask);*/
+=======
+    onAddTask(updatedTask);
+>>>>>>> origin/back
     onClose();
   };
 
@@ -125,28 +139,28 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onUpdateTask, on
             className="w-full px-4 py-2 border rounded-md"
           >
             <option value="">Select Priority</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
           </select>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Due Date</label>
+          <label className="block text-gray-700">Start Date</label>
           <input
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             className="w-full px-4 py-2 border rounded-md"
             type="date"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Assign to</label>
+          <label className="block text-gray-700">End Date</label>
           <input
-            value={member}
-            onChange={(e) => setMember(e.target.value)}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             className="w-full px-4 py-2 border rounded-md"
-            type="text"
-            placeholder="Enter member name"
+            type="date"
           />
         </div>
         <div className="flex justify-between">
@@ -175,52 +189,101 @@ const ToDoList: React.FC = () => {
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
-  const addTask = (task: Task) => {
-    setTasks([...tasks, task]);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const data = await getTask();
+        setTasks(data || []);
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const convertTaskToFormData = (task: Task): FormData => {
+    const formData = new FormData();
+    formData.append("id", task.id.toString());
+    formData.append("title", task.title);
+    formData.append("description", task.description);
+    if (task.startDate) formData.append("startDate", task.startDate);
+    if (task.endDate) formData.append("endDate", task.endDate);
+    if (task.priority) formData.append("priority", task.priority);
+    if (task.member) formData.append("member", task.member);
+    return formData;
   };
 
-  const updateTask = (updatedTask: Task) => {
-    setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
+  const handleAddOrEditTask = async (task: Task) => {
+    try {
+      const formData = convertTaskToFormData(task);
+      if (taskToEdit) {
+        // If editing an existing task
+        await editTask(task.id.toString(), formData);
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === task.id ? task : t))
+        );
+      } else {
+        // If adding a new task
+        await addTask(formData);
+        setTasks((prevTasks) => [...prevTasks, task]);
+      }
+    } catch (error) {
+      console.error("Failed to add or edit task:", error);
+    }
+    setTaskToEdit(null);
+    setIsAdding(false);
   };
 
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id.toString() !== taskId));
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
   };
 
   return (
     <div className="bg-purple-100 rounded-lg p-6 w-64 font-sans shadow-lg">
       <h2 className="text-2xl font-bold text-gray-700 mb-4">TO DO</h2>
       <div className="space-y-3 mb-4">
-        {tasks.map((task) => (
-          <div
-            key={task.id}
-            className="bg-white p-2 rounded-lg shadow-sm flex justify-between items-center cursor-pointer"
-          >
-            <span onClick={() => setSelectedTask(task)} className="text-gray-800 flex-grow">
-              {task.title}
-            </span>
-            <button
-              onClick={() => {
-                setTaskToEdit(task);
-                setIsAdding(true);
-              }}
-              className="text-blue-500 hover:underline text-sm"
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <div
+              key={task.id}
+              className="bg-white p-2 rounded-lg shadow-sm flex justify-between items-center group relative"
             >
-              Edit
-            </button>
-            <button
-              onClick={() => deleteTask(task.id)}
-              className="text-red-500 hover:underline text-sm"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+              <span onClick={() => setSelectedTask(task)} className="text-gray-800 flex-grow">
+                {task.title}
+              </span>
+              <div className="hidden group-hover:flex space-x-2 absolute right-2">
+                <button
+                  onClick={() => {
+                    setTaskToEdit(task);
+                    setIsAdding(true);
+                  }}
+                  className="text-blue-500 hover:underline text-sm"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(task.id.toString())}
+                  className="text-red-500 hover:underline text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-sm">No tasks found.</p>
+        )}
       </div>
       <button
         onClick={() => {
-          setTaskToEdit(null);
           setIsAdding(true);
+          setTaskToEdit(null);
         }}
         className="bg-purple-500 text-white p-2 rounded-md w-full"
       >
@@ -229,8 +292,7 @@ const ToDoList: React.FC = () => {
 
       {isAdding && (
         <AddTaskModal
-          onAddTask={addTask}
-          onUpdateTask={updateTask}
+          onAddTask={handleAddOrEditTask}
           onClose={() => setIsAdding(false)}
           taskToEdit={taskToEdit}
         />

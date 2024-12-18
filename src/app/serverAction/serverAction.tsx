@@ -2,6 +2,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
+import fs from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export const saveUserCookie = async (userID: string) => {
   const cookieStore = await cookies();
@@ -55,6 +58,7 @@ export const clearCookie = async () => {
     cookieStore.delete("teamID");
     cookieStore.delete("projectID");
     console.log("All cookies cleared.");
+    redirect("/");
   } catch (error) {
     console.error("Error clearing cookies:", error);
   }
@@ -176,22 +180,58 @@ export const updateUser = async (formData: FormData) => {
       throw new Error("User ID not found in cookies");
     }
 
+    // Handle image upload
+    const file = formData.get('picture') as File | null;
+    let pictureDir = null;
+
+    if (file && file instanceof File && file.size > 0) {
+      // Create uploads directory if it doesn't exist
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'profile');
+      await fs.mkdir(uploadDir, { recursive: true });
+
+      // Generate unique filename
+      const uniqueFilename = `${uuidv4()}-${file.name}`;
+      const filePath = path.join(uploadDir, uniqueFilename);
+
+      // Convert file to buffer and save
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      await fs.writeFile(filePath, buffer);
+
+      // Set picture directory path relative to public folder
+      pictureDir = `/uploads/profile/${uniqueFilename}`;
+    }
+
+    // Prepare update data with optional fields
+    const updateData: any = {
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      phone: formData.get('phone'),
+      ...(formData.get('bio') && { bio: formData.get('bio') }),
+      ...(pictureDir && { picture_dir: pictureDir }),
+    };
+
+    console.log("Sending update data:", updateData); // Add logging
+
     const response = await fetch(`${process.env.BASE_URL}/api/user/${userID}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(Object.fromEntries(formData)),
+      body: JSON.stringify(updateData),
     });
 
+    // Log the full response for debugging
+    const responseData = await response.json();
+    console.log("Server response:", responseData);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Update user data failed: ${response.statusText}`);
+      throw new Error(responseData.message || `Update user data failed: ${response.statusText}`);
     }
 
-    return await response.json();
+    return responseData;
   } catch (error) {
-    console.error("Update user data error:", error);
+    console.error("Full update user data error:", error);
     throw error;
   }
 };
@@ -499,4 +539,102 @@ export async function declineTeamInvite(teamID: string) {
     console.error("Error declining team invite:", error);
     throw error;
   }
+}
+export async function addTask(newTask: FormData) {
+  const cookieStore = await cookies();
+  const projectID = cookieStore.get("projectID")?.value;
+  const userID = cookieStore.get("userID")?.value;
+
+  if (!projectID || !userID) {
+      throw new Error("Missing projectID or userID in cookies.");
+  }
+
+  const newTaskData = {
+      taskTitle: newTask.get("title"),
+      startDate: newTask.get("startDate"),
+      endDate: newTask.get("endDate"),
+      status: newTask.get("status"),
+      priority: newTask.get("priority"),
+      description: newTask.get("description"),
+      userID,
+      projectID,
+  };
+
+  console.log("Sending Task Data:", newTaskData);
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task`, {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTaskData),
+  });
+
+  if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  return result.data;
+}
+
+
+export async function getTask() {
+  const cookieStore = await cookies();
+  const projectID = cookieStore.get("projectID")?.value;
+
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/taskofteam/${projectID}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Map tasks to match the frontend structure
+    return data.tasks.map((task : any)  => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      dueDate: task.endDate, // Use `endDate` as `dueDate`
+      priority: task.priority,
+      assignedUsers: task.users.map((user : any) => user.name).join(", "), // Combine user names into a single string
+    }));
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
+  }
+}
+
+export async function getTaskDetail(taskID : String) {
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { method: 'GET' });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+}
+export async function editTask(taskID: string, updatedTask:FormData) {
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { 
+    method: 'PUT',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedTask),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update task');
+  }
+
+  const data = await response.json();
+  return data.task; 
+}
+
+export async function deleteTask(taskID : String) {
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { method: 'DELETE' });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
 }
