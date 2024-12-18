@@ -540,3 +540,67 @@ export async function declineTeamInvite(teamID: string) {
     throw error;
   }
 }
+export async function addTask(newTask : FormData){
+  const cookieStore = await cookies();
+  const projectID = cookieStore.get("projectID")?.value;
+  const userID = cookieStore.get("userID")?.value;
+  const teamID = cookieStore.get("teamID")?.value;
+
+  const newTaskdata = {
+    newTask,
+    userID,
+    teamID
+  }
+  const response = await fetch(`${process.env.BASE_URL}/api/task`, { 
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newTaskdata), });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+}
+
+
+export async function getTask() {
+  const cookieStore = await cookies();
+  const projectID = cookieStore.get("projectID")?.value;
+
+  const response = await fetch(`${process.env.BASE_URL}/api/taskofteam/${projectID}`, { method: 'GET' });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+}
+
+export async function getTaskDetail(taskID : String) {
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { method: 'GET' });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+}
+export async function editTask(taskID: string, updatedTask: { title: string, description: string }) {
+  // Send a PUT request with updated task data
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { 
+    method: 'PUT',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedTask), // Pass the updated task object in the body
+  });
+
+  // Check if the response was successful
+  if (!response.ok) {
+    throw new Error('Failed to update task');
+  }
+
+  const data = await response.json();
+
+  // Assuming the updated task data is in the `task` field in the response
+  return data.task; // Return the updated task
+}
+
+export async function deleteTask(taskID : String) {
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { method: 'DELETE' });
+  const data = await response.json();
+  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+}

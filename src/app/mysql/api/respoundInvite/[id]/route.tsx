@@ -1,4 +1,4 @@
-import { pool } from "@/app/lib/mysql"; // MySQL connection pool
+import { pool } from "@/app/lib/mongodb"; // MySQL connection pool
 import { NextRequest, NextResponse } from "next/server";
 
 // Accept Invitation (PUT)
