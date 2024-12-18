@@ -86,101 +86,56 @@ export default function Leaderboard() {
         <SideNav />
         <div className="w-screen bg-white shadow-md">
           <Navbar />
-          <div style={{ padding: "20px" }}>
-            <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-              Leaderboard
+          <div className="p-5">
+            <h1 className="text-2xl font-bold text-center mb-5">
+              Leader Board
             </h1>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                margin: "auto",
-              }}
-            >
+            <table className="w-full border-collapse  shadow-lg ">
               <thead>
-                <tr style={{ backgroundColor: "#add8e6", textAlign: "left" }}>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Name
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Rank
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Role
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Total Send
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Total Approve
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Total Reject
-                  </th>
-                  <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Late
-                  </th>
+                <tr className="bg-blue-400 text-center">
+                  <th className="p-2 font-semibold rounded-tl-lg">Name</th>
+                  <th className="p-2 font-semibold">Rank</th>
+                  <th className="p-2 font-semibold text-left">Role</th>
+                  <th className="p-2 font-semibold">Total Send</th>
+                  <th className="p-2 font-semibold">Total Approve</th>
+                  <th className="p-2 font-semibold">Total Reject</th>
+                  <th className="p-2 font-semibold rounded-tr-lg">Late</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length > 0 ? (
                   users.map((user, index) => (
-                    <tr key={user._id} style={{ textAlign: "left" }}>
-                      <td
-                        style={{
-                          padding: "10px",
-                          border: "1px solid #ddd",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
+                    <tr key={user._id} className="border-b border-gray-300 text-center">
+                      <td className="p-2 flex items-center">
                         <img
                           src={user.user.pic_dir || "/icon/default-profile.png"}
                           alt={`${user.user.firstName} ${user.user.lastName}`}
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            marginRight: "10px",
-                          }}
+                          className="w-10 h-10 rounded-full mr-2"
                         />
                         {user.user.firstName} {user.user.lastName}
                       </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                      <td className="p-2">
                         {user.rank === "D" ? "D" : index + 1}
                       </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {user.role}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {user.totalSend}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {user.totalApprove}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {user.totalReject}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {user.late}
-                      </td>
+                      <td className="p-2 text-left">{user.role}</td>
+                      <td className="p-2">{user.totalSend}</td>
+                      <td className="p-2">{user.totalApprove}</td>
+                      <td className="p-2">{user.totalReject}</td>
+                      <td className="p-2">{user.late}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={7}
-                      style={{ textAlign: "center", padding: "10px" }}
-                    >
+                    <td colSpan={7} className="text-center p-2 border border-gray-300">
                       No users found.
                     </td>
                   </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
+    </div >
     </>
   );
 }

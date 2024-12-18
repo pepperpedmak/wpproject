@@ -35,7 +35,7 @@ export default function SideNav() {
         {/* Toggle button */}
         <button
           onClick={toggleSidebar}
-          className={`absolute top-1/2 transform -translate-y-1/2 ${isSidebarExpanded ? 'right-[-1rem]' : 'right-[-1rem]'} bg-blue-400 text-white font-bold font-momo p-2 rounded-full shadow-md focus:outline-none`}
+          className={`absolute top-1/2 transform -translate-y-[6px] ${isSidebarExpanded ? 'right-[-1rem]' : 'right-[-1rem]'} bg-blue-400 text-white font-bold font-momo p-2 rounded-full shadow-md focus:outline-none`}
         >
           {isSidebarExpanded ? (
             <svg
@@ -193,7 +193,7 @@ export default function SideNav() {
                 activeMenu('leaderboard');
               }}
             >
-              <Link href="/team">
+              <Link href="/leaderboard">
                 <div className="flex items-center p-2 m-1 ">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

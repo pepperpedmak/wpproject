@@ -32,14 +32,14 @@ export default function Home() {
       try {
         const data = await getUser();
         console.log('Fetched User Data:', data);
-        
+
         if (data) {
           setUserData(data);
           setEditedData(data);
           setLoading(false);
         } else {
           setLoading(false);
-          router.push('/login'); 
+          router.push('/login');
         }
       } catch (error) {
         console.error("Error setting user data:", error);
@@ -55,14 +55,14 @@ export default function Home() {
     try {
       const data = await getUser();
       console.log('Fetched User Data:', data);
-      
+
       if (data) {
         setUserData(data);
         setEditedData(data);
         setLoading(false);
       } else {
         setLoading(false);
-        router.push('/login'); 
+        router.push('/login');
       }
     } catch (error) {
       console.error("Error setting user data:", error);
@@ -70,7 +70,7 @@ export default function Home() {
       router.push('/login');
     }
   }
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (editedData) {
       setEditedData({
@@ -98,13 +98,13 @@ export default function Home() {
 
   const handleSave = async () => {
     if (!editedData) return;
-  
+
     const formData = new FormData();
     formData.append("firstName", editedData.firstName);
     formData.append("lastName", editedData.lastName);
     formData.append("phone", editedData.phone);
     formData.append("bio", editedData.bio);
-  
+
     try {
       const updatedUser = await updateUser(formData);
       setUserData(updatedUser);
@@ -134,136 +134,135 @@ export default function Home() {
 
   return (
     <>
-    <Header/>
-    <div className="min-h-screen flex">
-      <SideNav />
-      <div className="w-screen bg-white shadow-md">
-        <Navbar />
-        <div className="flex-1 overflow-auto p-6 font-sans">
-          <div className="flex justify-end mb-4">
-            {!isEditing ? (
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-              >
-                Edit Profile
-              </button>
-            ) : (
-              <div className="space-x-2">
-                <button 
-                  onClick={handleSave}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+      <Header />
+      <div className="min-h-screen flex">
+        <SideNav />
+        <div className="w-screen bg-white shadow-md">
+          <Navbar />
+          <div className="flex-1 overflow-auto p-6 font-sans">
+            <div className="flex justify-end mb-4">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-blue-400 text-white p-2 rounded-lg hover:bg-blue-600"
                 >
-                  Save
+                  Edit Profile
                 </button>
-                <button 
-                  onClick={handleCancel}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-
-          <h2 className="text-4xl font-bold text-center mb-8">Profile</h2>
-
-          <div className="flex flex-col items-center space-y-6">
-            {/* Profile Image */}
-            <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300">
-              <img
-                src={previewImage || userData.picture_dir || '/icon/default-profile.png'}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-              {isEditing && (
-                <div 
-                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                  onClick={triggerFileInput}
-                >
+              ) : (
+                <div className="space-x-2">
+                  <button
+                    onClick={handleSave}
+                    className="bg-green-400 text-white p-2 rounded-lg hover:bg-green-600 w-16"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="bg-red-400 text-white p-2 rounded-lg hover:bg-red-600 w-16"
+                  >
+                    Cancel
+                  </button>
                 </div>
               )}
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                accept="image/*"
-                className="hidden"
-              />
             </div>
 
-            {/* Profile Information */}
-            <div className="w-full max-w-lg">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-700 mb-1">First Name</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={editedData?.firstName || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{userData.firstName}</p>
-                  )}
+            <h2 className="text-3xl font-bold text-center mb-8">Profile</h2>
+
+            <div className="flex flex-col space-y-6 justify-center items-center ">
+              {/* Profile Image */}
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300">
+                <img
+                  src={previewImage || userData.picture_dir || '/icon/default-profile.png'}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+                {isEditing && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                    onClick={triggerFileInput}
+                  >
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+              {/* Profile Information */}
+              <div className="w-full max-w-2xl ml-28">
+                <div className="grid grid-cols-2 gap-7 mb-4">
+                  <div className="flex justify-center">
+                    <label className="block text-gray-700 mr-2 pt-2">First Name</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={editedData?.firstName || ''}
+                        onChange={handleInputChange}
+                        className="w-52 h-8 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    ) : (
+                      <p className="text-black font-semibold p-2">{userData.firstName}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-center">
+                    <label className="block text-gray-700 mr-2 pt-2">Last Name</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={editedData?.lastName || ''}
+                        onChange={handleInputChange}
+                        className="w-52 h-8 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    ) : (
+                      <p className="text-black font-semibold pt-2">{userData.lastName}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-8 mb-6">
+                  <div className="flex justify-center">
+                    <label className="block text-gray-700 mr-2">Email</label>
+                    <p className="text-black font-semibold">{userData.email}</p>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <label className="block text-gray-700 mr-2 pt-2">Phone </label>
+                    {isEditing ? (
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={editedData?.phone || ''}
+                        onChange={handleInputChange}
+                        className="w-60 h-8 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : (
+                      <p className="text-black font-semibold pt-2">{userData.phone}</p>
+                    )}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1">Last Name</label>
+                  <label className="block text-gray-700 mb-1">Bio</label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={editedData?.lastName || ''}
+                    <textarea
+                      name="bio"
+                      value={editedData?.bio || ''}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Write something about yourself..."
+                      className="w-full h-28 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   ) : (
-                    <p className="text-gray-900">{userData.lastName}</p>
+                    <p className="text-black w-5/6 h-28 border border-blue-400 rounded-md p-2 ">{userData.bio}</p>
                   )}
                 </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-1">Email</label>
-                <p className="text-gray-900">{userData.email}</p>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-1">Phone</label>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={editedData?.phone || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                ) : (
-                  <p className="text-gray-900">{userData.phone}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-1">Bio</label>
-                {isEditing ? (
-                  <textarea
-                    name="bio"
-                    value={editedData?.bio || ''}
-                    onChange={handleInputChange}
-                    placeholder="Write something about yourself..."
-                    className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                ) : (
-                  <p className="text-gray-900">{userData.bio}</p>
-                )}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
