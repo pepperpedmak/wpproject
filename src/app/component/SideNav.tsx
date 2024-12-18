@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import TeamSideBar from './TeamSideBar';
 import MemberSideBar from './MemberSideBar';
+import { getUser , clearCookie } from '../serverAction/serverAction';
+import { useRouter } from "next/navigation";
 
 export default function SideNav() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isTeamSideBarVisible, setIsTeamSideBarVisible] = useState(false);
   const [isMemberSideBarVisible, setIsMemberSideBarVisible] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState<string>(''); // Track active menu item
+
+  const router = useRouter();
 
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
@@ -25,6 +29,11 @@ export default function SideNav() {
     if (menu !== 'project') setIsTeamSideBarVisible(false);
     if (menu !== 'member') setIsMemberSideBarVisible(false);
   };
+
+  const handleLogout = () =>{
+    clearCookie();
+    router.push('/login');
+  }
 
   return (
 
@@ -132,7 +141,6 @@ export default function SideNav() {
                 toggleTeamSideBar();
               }}
             >
-              <Link href="/">
                 <div className="flex items-center p-2 m-1 ">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -151,7 +159,6 @@ export default function SideNav() {
                     <div className="font-medium">Project</div>
                   </span>
                 </div>
-              </Link>
             </li>
             <li
               className={`flex items-center rounded-md text-black  
@@ -163,7 +170,6 @@ export default function SideNav() {
                 toggleMemberSideBar();
               }}
             >
-              <Link href="/">
                 <div className="flex items-center p-2 m-1 ">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -182,7 +188,6 @@ export default function SideNav() {
                     <div className="font-medium">Member</div>
                   </span>
                 </div>
-              </Link>
             </li>
             <li
               className={`flex items-center rounded-md text-black  
@@ -193,7 +198,7 @@ export default function SideNav() {
                 activeMenu('leaderboard');
               }}
             >
-              <Link href="/team">
+              <Link href="/leaderboard">
                 <div className="flex items-center p-2 m-1 ">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -213,6 +218,17 @@ export default function SideNav() {
                   </span>
                 </div>
               </Link>
+            </li>
+            {/* Add the logout button */}
+            <li className="flex items-center rounded-md text-black hover:bg-blue-400 hover:text-white cursor-pointer" onClick={handleLogout}>
+              <div className="flex items-center p-2 m-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+                <span className={`overflow-hidden transition-all ${isSidebarExpanded ? 'w-44 ml-1' : 'w-0'}`}>
+                  <div className="font-medium">Logout</div>
+                </span>
+              </div>
             </li>
           </ul>
         </nav>

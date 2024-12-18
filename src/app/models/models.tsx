@@ -9,7 +9,7 @@ interface User extends Document {
     lastName: string;
     phone: string;
     bio?: string;
-    pic_dir?: string;
+    picture_dir?: string;
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -37,11 +37,13 @@ const userSchema = new Schema<User>({
   },
   bio: {
       type: String,
-      required: false
+      required: false,
+      default:''
   },
-  pic_dir: {
+  picture_dir: {
       type: String,
-      required: false
+      required: false,
+      default:null
   }
 });
 
@@ -139,53 +141,52 @@ const projectSchema = new Schema({
 export const Project = mongoose.models.Project || mongoose.model("Project" , projectSchema);
 
 const taskSchema = new Schema({
-  taskTitle :{
-    type : String,
-    required :true,
-  },
-  startDate:{
-    type : Date,
-    required :true,
-  },
-  endDate:{
-    type : Date,
-    required :true,
-  },
-  status:{
+  taskTitle: {
     type: String,
-    enum : ['todo','inprogress','testing','complete'] ,
-    default: 'todo' ,
+    required: true,
   },
-  priority:{
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+  status: {
     type: String,
-    enum : ['low','medium','high','urgent'] ,
-    required : true,
+    enum: ["todo", "inprogress", "testing", "complete"],
+    default: "todo",
   },
-  describtion:{
-    type : String,
+  priority: {
+    type: String,
+    enum: ["low", "medium", "high", "urgent"],
+    required: true,
   },
-  users:[{
-    user:{
-      type: mongoose.Schema.Types.ObjectId,
-      ref : "User",
+  describtion: {
+    type: String,
+  },
+  users: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      fileDir: {
+        type: String, // Optional
+      },
+      fileName: {
+        type: String, // Optional
+      },
+      uploadDate: {
+        type: Date, // Optional
+      },
+      isAccept: {
+        type: Boolean,
+        default: false,
+      },
     },
-    fileDir:{
-      type : String,
-      required : true,
-    },
-    fileName:{
-      type : String,
-      required : true,
-    },
-    uploadDate:{
-      type : Date,
-      required : true
-    },
-    isAccept:{
-      type : Boolean,
-      default : false,
-    }
-  }]
-})
+  ],
+}); 
 
 export const Task = mongoose.models.Task || mongoose.model("Task" , taskSchema);

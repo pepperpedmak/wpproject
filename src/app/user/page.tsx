@@ -105,6 +105,11 @@ export default function Home() {
     formData.append("phone", editedData.phone);
     formData.append("bio", editedData.bio);
   
+    // Add image to form data if selected
+    if (selectedImage) {
+      formData.append("picture", selectedImage);
+    }
+  
     try {
       const updatedUser = await updateUser(formData);
       setUserData(updatedUser);

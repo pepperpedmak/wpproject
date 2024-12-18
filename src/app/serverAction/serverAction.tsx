@@ -2,6 +2,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
+import fs from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export const saveUserCookie = async (userID: string) => {
   const cookieStore = await cookies();
@@ -55,6 +58,7 @@ export const clearCookie = async () => {
     cookieStore.delete("teamID");
     cookieStore.delete("projectID");
     console.log("All cookies cleared.");
+    redirect("/");
   } catch (error) {
     console.error("Error clearing cookies:", error);
   }
@@ -176,22 +180,58 @@ export const updateUser = async (formData: FormData) => {
       throw new Error("User ID not found in cookies");
     }
 
+    // Handle image upload
+    const file = formData.get('picture') as File | null;
+    let pictureDir = null;
+
+    if (file && file instanceof File && file.size > 0) {
+      // Create uploads directory if it doesn't exist
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'profile');
+      await fs.mkdir(uploadDir, { recursive: true });
+
+      // Generate unique filename
+      const uniqueFilename = `${uuidv4()}-${file.name}`;
+      const filePath = path.join(uploadDir, uniqueFilename);
+
+      // Convert file to buffer and save
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      await fs.writeFile(filePath, buffer);
+
+      // Set picture directory path relative to public folder
+      pictureDir = `/uploads/profile/${uniqueFilename}`;
+    }
+
+    // Prepare update data with optional fields
+    const updateData: any = {
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      phone: formData.get('phone'),
+      ...(formData.get('bio') && { bio: formData.get('bio') }),
+      ...(pictureDir && { picture_dir: pictureDir }),
+    };
+
+    console.log("Sending update data:", updateData); // Add logging
+
     const response = await fetch(`${process.env.BASE_URL}/api/user/${userID}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(Object.fromEntries(formData)),
+      body: JSON.stringify(updateData),
     });
 
+    // Log the full response for debugging
+    const responseData = await response.json();
+    console.log("Server response:", responseData);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Update user data failed: ${response.statusText}`);
+      throw new Error(responseData.message || `Update user data failed: ${response.statusText}`);
     }
 
-    return await response.json();
+    return responseData;
   } catch (error) {
-    console.error("Update user data error:", error);
+    console.error("Full update user data error:", error);
     throw error;
   }
 };
