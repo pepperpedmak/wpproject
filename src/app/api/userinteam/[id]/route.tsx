@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"; 
-import { Team } from "@/app/models/models"; 
+import { NextResponse } from "next/server";
+import { Team, User } from "@/app/models/models";
 import { ConnectDB } from "@/app/lib/mongodb";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
@@ -8,7 +8,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const userID = params.id;
 
     const team = await Team.find({
-      users: { $elemMatch: { user: userID } }}).populate("users.user").populate("projects.project");
+      users: { $elemMatch: { user: userID } }
+    }).populate("users.user").populate("projects.project");
 
     if (!team) {
       return NextResponse.json(
@@ -26,39 +27,59 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     );
   }
 }
-//invite
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   await ConnectDB();
   try {
-    const teamID = params.id; 
-    const { inviteMember } = await req.json(); 
+    const teamID = params.id;
+    const { email } = await req.json(); // Receive email from the request
 
-    if (!inviteMember) {
+    if (!email) {
       return NextResponse.json(
-        { status: "error", message: "Invite member ID is required" },
+        { status: "error", message: "Email is required" },
         { status: 400 }
       );
     }
 
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return NextResponse.json(
+        { status: "error", message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is already in the team
+    const team = await Team.findById(teamID).populate("users.user");
+    const isUserInTeam = team?.users.some(
+      (teamUser: any) => teamUser.user._id.toString() === user._id.toString()
+    );
+
+    if (isUserInTeam) {
+      return NextResponse.json(
+        { status: "warning", message: "User is already in the team" },
+        { status: 200 }
+      );
+    }
+
+    // Add the user to the team
     const invite = await Team.findByIdAndUpdate(
-      teamID, 
+      teamID,
       {
-        $push: { 
-          users: { 
-            user: inviteMember, 
-            role: "member", 
+        $push: {
+          users: {
+            user: user._id, // Reference the user ID
+            role: "member",
             status: "pending",
-            totalSend: 0, 
-            totalApprove: 0, 
-            totalReject: 0, 
-            late: 0 
-          } 
-        }
+            totalSend: 0,
+            totalApprove: 0,
+            totalReject: 0,
+            late: 0,
+          },
+        },
       },
       { new: true }
-    )
-      .populate("users.user") 
-      .populate("projects.project"); 
+    ).populate("users.user");
 
     if (!invite) {
       return NextResponse.json(
@@ -67,7 +88,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       );
     }
 
-    return NextResponse.json({ status: "success", team: invite });
+    return NextResponse.json({
+      status: "success",
+      message: "User invited successfully",
+      team: invite,
+    });
   } catch (error) {
     console.error("Error inviting user:", error);
     return NextResponse.json(
@@ -76,22 +101,24 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     );
   }
 }
-
-
 //kick
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   await ConnectDB();
   try {
     const teamID = params.id;
-
     const { kickMember } = await req.json();
+
+    if (!kickMember) {
+      return NextResponse.json(
+        { status: "error", message: "Member ID is required" },
+        { status: 400 }
+      );
+    }
 
     const updatedTeam = await Team.findByIdAndUpdate(
       teamID,
-      {
-        $pull: { users: { user: kickMember } }, 
-      },
-      { new: true } 
+      { $pull: { users: { user: kickMember } } }, // Removes user object matching ID
+      { new: true }
     );
 
     if (!updatedTeam) {

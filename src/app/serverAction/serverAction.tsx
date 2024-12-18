@@ -289,7 +289,77 @@ export async function deleteTeam(teamID: string): Promise<void> {
     console.log("Team deleted successfully!");
   } catch (error) {
     console.error("Error deleting team:", error);
-    throw error; 
+    throw error;
+  }
+}
+
+export async function addProject(teamID: string, projectName: string) {
+  try {
+    if (!teamID) throw new Error("Team ID is required to add a project.");
+
+    const response = await fetch(`${process.env.BASE_URL}/api/project/${teamID}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add project: ${response.statusText}`);
+    }
+
+    return await response.json(); // Return the new project
+  } catch (error) {
+    console.error("Error adding project:", error);
+    throw error;
+  }
+}
+
+// Function to edit a project's name
+export async function editProjectName(projectID: string, projectName: string) {
+  try {
+    if (!projectID) throw new Error("Project ID is required to edit a project.");
+
+    const response = await fetch(`${process.env.BASE_URL}/api/project/${projectID}`, {
+      method: "PUT", // Use PUT for updates
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectName }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to edit project name: ${response.statusText}`);
+    }
+
+    console.log("Project name updated successfully!");
+  } catch (error) {
+    console.error("Error editing project name:", error);
+    throw error;
+  }
+}
+
+// Function to delete a project under a team
+export async function deleteProject(projectID: string) {
+  try {
+    if (!projectID) throw new Error("Project ID is required to delete a project.");
+
+    const response = await fetch(`${process.env.BASE_URL}/api/project/${projectID}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete project: ${response.statusText}`);
+    }
+
+    console.log("Project deleted successfully!");
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    throw error;
   }
 }
 
@@ -299,7 +369,6 @@ export async function fetchUserInTeam() {
     const teamID = cookieStore.get("teamID")?.value;
 
     if (!teamID) {
-      console.error("No teamID found in cookies");
       throw new Error("Missing required cookies: teamID");
     }
 
@@ -315,10 +384,119 @@ export async function fetchUserInTeam() {
     }
 
     const data = await response.json();
-    console.log("Full API Response:", JSON.stringify(data, null, 2)); 
     return data;
   } catch (error) {
     console.error("Detailed Error fetching team data:", error);
     return null;
+  }
+}
+
+export async function inviteMember(email: string) {
+  const cookieStore = await cookies();
+  const teamID = cookieStore.get("teamID")?.value;
+
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/userinteam/${teamID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }), // Send email instead of userID
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to invite member");
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error inviting member:", error);
+    throw error;
+  }
+}
+
+export async function kickMember(userID: string) {
+  const cookieStore = await cookies();
+  const teamID = cookieStore.get("teamID")?.value;
+
+  if (!teamID) throw new Error("Team ID is missing from cookies.");
+
+  try {
+    const response = await fetch(
+      `${process.env.BASE_URL}/api/userinteam/${teamID}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kickMember: userID }), // Correct payload
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to remove member");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error removing member:", error);
+    throw error;
+  }
+}
+
+// Accept Team Invite
+export async function acceptTeamInvite(teamID: string) {
+  const cookieStore = await cookies();
+  const userID = cookieStore.get("userID")?.value;
+
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/respoundInvite/${teamID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to accept team invite.");
+    }
+
+    const data = await response.json();
+    console.log("Team invite accepted successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error accepting team invite:", error);
+    throw error;
+  }
+}
+
+// Decline Team Invite
+export async function declineTeamInvite(teamID: string) {
+  const cookieStore = await cookies();
+  const userID = cookieStore.get("userID")?.value;
+
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/respoundInvite/${teamID}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to decline team invite.");
+    }
+
+    const data = await response.json();
+    console.log("Team invite declined successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error declining team invite:", error);
+    throw error;
   }
 }
