@@ -540,25 +540,42 @@ export async function declineTeamInvite(teamID: string) {
     throw error;
   }
 }
-export async function addTask(newTask : FormData){
+export async function addTask(newTask: FormData) {
   const cookieStore = await cookies();
   const projectID = cookieStore.get("projectID")?.value;
   const userID = cookieStore.get("userID")?.value;
-  const teamID = cookieStore.get("teamID")?.value;
 
-  const newTaskdata = {
-    newTask,
-    userID,
-    teamID
+  if (!projectID || !userID) {
+      throw new Error("Missing projectID or userID in cookies.");
   }
-  const response = await fetch(`${process.env.BASE_URL}/api/task`, { 
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(newTaskdata), });
-  const data = await response.json();
-  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+
+  const newTaskData = {
+      taskTitle: newTask.get("title"),
+      startDate: newTask.get("startDate"),
+      endDate: newTask.get("endDate"),
+      status: newTask.get("status"),
+      priority: newTask.get("priority"),
+      description: newTask.get("description"),
+      userID,
+      projectID,
+  };
+
+  console.log("Sending Task Data:", newTaskData);
+
+  const response = await fetch(`${process.env.BASE_URL}/api/task`, {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTaskData),
+  });
+
+  if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  return result.data;
 }
 
 
@@ -566,10 +583,30 @@ export async function getTask() {
   const cookieStore = await cookies();
   const projectID = cookieStore.get("projectID")?.value;
 
-  const response = await fetch(`${process.env.BASE_URL}/api/taskofteam/${projectID}`, { method: 'GET' });
-  const data = await response.json();
-  console.log(data);
-  return data.tasks; // Assuming the tasks data is in `tasks` field in the response
+  try {
+    const response = await fetch(`${process.env.BASE_URL}/api/taskofteam/${projectID}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Map tasks to match the frontend structure
+    return data.tasks.map((task : any)  => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      dueDate: task.endDate, // Use `endDate` as `dueDate`
+      priority: task.priority,
+      assignedUsers: task.users.map((user : any) => user.name).join(", "), // Combine user names into a single string
+    }));
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
+  }
 }
 
 export async function getTaskDetail(taskID : String) {
@@ -578,25 +615,21 @@ export async function getTaskDetail(taskID : String) {
   const data = await response.json();
   return data.tasks; // Assuming the tasks data is in `tasks` field in the response
 }
-export async function editTask(taskID: string, updatedTask: { title: string, description: string }) {
-  // Send a PUT request with updated task data
+export async function editTask(taskID: string, updatedTask:FormData) {
   const response = await fetch(`${process.env.BASE_URL}/api/task/${taskID}`, { 
     method: 'PUT',
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(updatedTask), // Pass the updated task object in the body
+    body: JSON.stringify(updatedTask),
   });
 
-  // Check if the response was successful
   if (!response.ok) {
     throw new Error('Failed to update task');
   }
 
   const data = await response.json();
-
-  // Assuming the updated task data is in the `task` field in the response
-  return data.task; // Return the updated task
+  return data.task; 
 }
 
 export async function deleteTask(taskID : String) {
