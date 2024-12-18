@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { getTask , addTask , editTask ,deleteTask } from "../serverAction/serverAction";
+import TaskDetail from "./TaskDetail";
+import AddTaskModal from "./AddtaskModal";
+
 
 // Task Interface
 interface Task {
@@ -16,164 +20,25 @@ interface TaskDetailProps {
   onClose: () => void;
 }
 
-const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose }) => {
-  if (!task) return null;
-
-  return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
-      <div className="w-96 bg-white p-6 shadow-lg relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">{task.title}</h2>
-        <p className="text-gray-600 mb-4">{task.description}</p>
-        {task.dueDate && <p className="text-sm text-gray-500">Due: {task.dueDate}</p>}
-        {task.priority && <p className="text-sm text-gray-500">Priority: {task.priority}</p>}
-        {task.member && <p className="text-sm text-gray-500">Assigned to: {task.member}</p>}
-      </div>
-    </div>
-  );
-};
-
-// Add/Edit Task Modal
-interface AddTaskModalProps {
-  onAddTask: (task: Task) => void;
-  onUpdateTask: (task: Task) => void;
-  onClose: () => void;
-  taskToEdit?: Task | null;
-}
-
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onUpdateTask, onClose, taskToEdit }) => {
-  const [title, setTitle] = useState<string>(taskToEdit?.title || "");
-  const [description, setDescription] = useState<string>(taskToEdit?.description || "");
-  const [priority, setPriority] = useState<string>(taskToEdit?.priority || "");
-  const [dueDate, setDueDate] = useState<string>(taskToEdit?.dueDate || "");
-  const [member, setMember] = useState<string>(taskToEdit?.member || "");
-
-  useEffect(() => {
-    if (taskToEdit) {
-      setTitle(taskToEdit.title || "");
-      setDescription(taskToEdit.description || "");
-      setPriority(taskToEdit.priority || "");
-      setDueDate(taskToEdit.dueDate || "");
-      setMember(taskToEdit.member || "");
-    }
-  }, [taskToEdit]);
-
-  const handleSave = () => {
-    if (!title.trim()) return alert("Task title is required!");
-
-    const newTask: Task = {
-      id: taskToEdit ? taskToEdit.id : Date.now(),
-      title,
-      description,
-      priority,
-      dueDate,
-      member,
-    };
-
-    taskToEdit ? onUpdateTask(newTask) : onAddTask(newTask);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 shadow-lg rounded-md w-96">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          {taskToEdit ? "Edit Task" : "Add New Task"}
-        </h2>
-        <div className="mb-4">
-          <label className="block text-gray-700">Task Name</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-            type="text"
-            placeholder="Enter task name"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-            placeholder="Add task description"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Priority</label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-          >
-            <option value="">Select Priority</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Due Date</label>
-          <input
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-            type="date"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Assign to</label>
-          <input
-            value={member}
-            onChange={(e) => setMember(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md"
-            type="text"
-            placeholder="Enter member name"
-          />
-        </div>
-        <div className="flex justify-between">
-          <button
-            onClick={onClose}
-            className="bg-gray-500 text-white px-4 py-2 rounded-md"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Component
 const ToDoList: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+
+  // Fetch tasks on component mount
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const fetchedTasks = await getTask();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   const addTask = (task: Task) => {
     setTasks([...tasks, task]);
@@ -183,8 +48,13 @@ const ToDoList: React.FC = () => {
     setTasks(tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
   };
 
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  const deleteTask = async (id: number) => {
+    try {
+      await deleteTask(id); // Assuming deleteTask expects a string
+      setTasks(tasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   return (

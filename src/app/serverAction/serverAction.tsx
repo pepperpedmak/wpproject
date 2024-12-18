@@ -568,6 +568,7 @@ export async function getTask() {
 
   const response = await fetch(`${process.env.BASE_URL}/api/taskofteam/${projectID}`, { method: 'GET' });
   const data = await response.json();
+  console.log(data);
   return data.tasks; // Assuming the tasks data is in `tasks` field in the response
 }
 
