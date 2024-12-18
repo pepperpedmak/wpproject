@@ -76,7 +76,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onUpdateTask, on
     }
   }, [taskToEdit]);
 
-  const handleSave = () => {
+  /*const handleSave = () => {
     if (!title.trim()) return alert("Task title is required!");
 
     const newTask: Task = {
@@ -88,7 +88,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ onAddTask, onUpdateTask, on
       member,
     };
 
-    taskToEdit ? onUpdateTask(newTask) : onAddTask(newTask);
+    taskToEdit ? onUpdateTask(newTask) : onAddTask(newTask);*/
     onClose();
   };
 
