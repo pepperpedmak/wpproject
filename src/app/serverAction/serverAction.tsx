@@ -591,15 +591,16 @@ export async function getTask() {
     if (!response.ok) {
       throw new Error(`Failed to fetch tasks: ${response.statusText}`);
     }
-
+    
     const data = await response.json();
-
+    console.log("serveraction",data);
     // Map tasks to match the frontend structure
     return data.tasks.map((task : any)  => ({
       id: task.id,
       title: task.title,
       description: task.description,
       dueDate: task.endDate, // Use `endDate` as `dueDate`
+      status: task.status,
       priority: task.priority,
       assignedUsers: task.users.map((user : any) => user.name).join(", "), // Combine user names into a single string
     }));
